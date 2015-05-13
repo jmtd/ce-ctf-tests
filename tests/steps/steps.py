@@ -16,7 +16,7 @@ def container_is_started(context):
     context.container = Container(context.image, save_output = False)
     context.container.start()
     
-
+@then(u'check that page is not served')
 @then(u'check that page is served')
 def handle_request(context):
     # set defaults
@@ -75,8 +75,15 @@ def handle_request(context):
         time.sleep(1)
     raise Exception("handle_request failed", expected_status_code) # XXX: better diagnostics         
 
-
-@then(u'container log contains {message}')
+@then(u'container log should not contain {message}')
+def log_not_contains_msg(context, message):
+    try:
+        log_contains_msg(context, message)
+        raise Exception("log contains %s" % message)
+    except:
+        pass
+    
+@then(u'container log should contain {message}')
 def log_contains_msg(context, message):
     found = True
     found_messages = []
@@ -109,7 +116,7 @@ def run_command_expect_message(context, cmd, output_phrase):
     raise Exception("run_command_expect_message didn't find message", output)
 
 
-@then('{filename} should contain {phrase}')
+@then('file {filename} should contain {phrase}')
 def file_should_contain(context, filename, phrase):
      run_command_expect_message(context, 'cat %s' % filename, phrase)
 
