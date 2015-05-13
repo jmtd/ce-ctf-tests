@@ -84,7 +84,8 @@ class Container(object):
 
     def execute(self, cmd):
         """ executes cmd in container and return its output """
-        return d.execute(self.container, cmd=cmd)
+        inst = d.exec_create(container=self.container, cmd=cmd)
+        return d.exec_start(inst)
 
     def get_output(self, history = True):
         return d.attach(container = self.container, stream = False, logs=history)
