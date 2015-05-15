@@ -10,6 +10,8 @@ from docker import Client
 from container import Container
 
 DOCKER_CLIENT = Client()
+LOG_FORMAT='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(format=LOG_FORMAT)
 
 @when(u'container is ready')
 def container_is_started(context):
