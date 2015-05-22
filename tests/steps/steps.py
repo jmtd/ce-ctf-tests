@@ -19,8 +19,7 @@ def container_is_started(context):
     context.container.start()
     
 @then(u'check that page is not served')
-@then(u'check that page is served')
-def handle_request(context):
+def check_page_is_not_served(context):
     # set defaults
     port = 80
     wait = 30
@@ -42,7 +41,39 @@ def handle_request(context):
             expected_phrase = row['value']
         if row['property'] == 'path':
             path = row['value']
-            
+    try:
+        handle_request(context, port, wait, timeout, expected_status_code, path, expected_phrase)
+    except:
+        return True
+    raise Exception("Page was served")
+
+
+@then(u'check that page is served')
+def check_page_is_served(context):
+    # set defaults
+    port = 80
+    wait = 30
+    timeout = 0.5
+    expected_status_code = 200
+    path = '/'
+    expected_phrase = None
+    # adjust defaults from user table
+    for row in context.table:
+        if row['property'] == 'port':
+            port = row['value']
+        if row['property'] == 'expected_status_code':
+            expected_status_code = int(row['value'])
+        if row['property'] == 'wait':
+            wait = int(row['value'])
+        if row['property'] == 'timeout':
+            timeout = row['value']
+        if row['property'] == 'expected_phrase':
+            expected_phrase = row['value']
+        if row['property'] == 'path':
+            path = row['value']
+    handle_request(context, port, wait, timeout, expected_status_code, path, expected_phrase)
+
+def handle_request(context, port, wait, timeout, expected_status_code, path, expected_phrase):
     logging.info("Checking if the container is returning status code %s on port %s" % (expected_status_code, port))
     
     start_time = time.time()
@@ -84,7 +115,8 @@ def log_not_contains_msg(context, message):
         raise Exception("log contains %s" % message)
     except:
         pass
-    
+    ls
+    sdsdsdjnbjsd
 @then(u'container log should contain {message}')
 def log_contains_msg(context, message):
     found = True
