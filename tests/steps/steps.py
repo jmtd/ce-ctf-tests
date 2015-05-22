@@ -115,8 +115,7 @@ def log_not_contains_msg(context, message):
         raise Exception("log contains %s" % message)
     except:
         pass
-    ls
-    sdsdsdjnbjsd
+
 @then(u'container log should contain {message}')
 def log_contains_msg(context, message):
     found = True
