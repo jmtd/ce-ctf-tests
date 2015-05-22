@@ -187,6 +187,14 @@ def start_container(context):
     context.container = Container(context.image, name=context.scenario.name)
     context.container.start(environment = env)
 
+@given(u'container is started as uid {uid}')
+@when(u'container is started as uid {uid}')
+def start_container(context, uid):
+    if uid < 0:
+        raise Exception("UID %d is negative" % uid)
+    context.container = Container(context.image, save_output = False)
+    context.container.start(user = uid)
+
 def _execute(command, **kwargs):
     """
     Helper method to execute a shell command and redirect the logs to logger
