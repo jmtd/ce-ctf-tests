@@ -167,7 +167,7 @@ def file_should_contain(context, filename, phrase):
 def sti_build(context, application, path='.'):
     context.image = context.config.userdata.get('IMAGE', 'ctf')
     image_id = "integ-" + context.image
-    command = "sti build --loglevel=5 --forcePull=false --contextDir=%s %s %s %s" % (path, application, context.image, image_id)
+    command = "sti build --loglevel=5 --force-pull=false --context-dir=%s %s %s %s" % (path, application, context.image, image_id)
     logging.info("Executing new STI build...")
     if _execute(command):
         logging.info("STI build succeeded, image %s was built" % image_id)
