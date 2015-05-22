@@ -32,7 +32,7 @@ class Container(object):
     Object representing a docker test container, it is used in tests
     """
 
-    def __init__(self, image_id, name=None, remove_image = False, output_dir = ".", save_output=True, **kwargs):
+    def __init__(self, image_id, name=None, remove_image = False, output_dir = "target", save_output=True, **kwargs):
         self.image_id = image_id
         self.container = None
         self.name = name
@@ -73,6 +73,8 @@ class Container(object):
             if not self.name:
                 self.name = self.container.get('Id')
             out_path = self.output_dir + "/output-" + self.name + ".txt"
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
             with open(out_path, 'w') as f:
                 print(d.attach(container=self.container.get('Id'), stream=False, logs=True), file=f)
             f.closed

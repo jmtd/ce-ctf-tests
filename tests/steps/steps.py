@@ -16,7 +16,7 @@ logging.basicConfig(format=LOG_FORMAT)
 
 @when(u'container is ready')
 def container_is_started(context):
-    context.container = Container(context.image, save_output = False)
+    context.container = Container(context.image, name=context.scenario.name)
     context.container.start()
     
 @then(u'check that page is not served')
@@ -174,7 +174,7 @@ def sti_build(context, application, path='.'):
         logging.info("STI build succeeded, image %s was built" % image_id)
     else:
         logging.error("STI build failed, check logs!")
-    context.container = Container(image_id, save_output = False)
+    context.container = Container(image_id, name=context.scenario.name)
     context.container.start()
 
 
@@ -184,7 +184,7 @@ def start_container(context):
     env = {}
     for row in context.table:
         env[row['variable']] = row['value']
-    context.container = Container(context.image, save_output = False)
+    context.container = Container(context.image, name=context.scenario.name)
     context.container.start(environment = env)
 
 def _execute(command, **kwargs):
