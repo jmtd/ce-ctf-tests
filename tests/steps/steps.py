@@ -145,6 +145,7 @@ def run_command_unexpect_message(context, cmd, output_phrase):
 
 
 @then(u'run {cmd} in container and check its output for {output_phrase}')
+@then(u'run {cmd} in container and check its output contains {output_phrase}')
 @then(u'run {cmd} in container')
 def run_command_expect_message(context, cmd, output_phrase):
     start_time = time.time()
