@@ -18,6 +18,30 @@ logging.basicConfig(format=LOG_FORMAT)
 def container_is_started(context):
     context.container = Container(context.image, name=context.scenario.name)
     context.container.start()
+
+@then(u'the image should contain label {label}')
+@then(u'the image should contain label {label} with value {value}')
+def label_exists(context, label, value=None):
+    metadata = DOCKER_CLIENT.inspect_image(context.image)
+    config = metadata['Config']
+
+    try:
+        labels = config['Labels']
+    except KeyError:
+        raise Exception("There are no labels in the %s image" % context.image)
+
+    try:
+        actual_value = labels[label]
+    except KeyError:
+        raise Exception("Label %s was not found in the %s image" % (label, context.image))
+
+    if not value:
+        return True
+
+    if actual_value == value:
+        return True
+
+    raise Exception("The %s label does not contain %s value, current value: %s" % (label, value, actual_value))
     
 @then(u'check that page is not served')
 def check_page_is_not_served(context):
@@ -187,6 +211,10 @@ def start_container(context):
         env[row['variable']] = row['value']
     context.container = Container(context.image, name=context.scenario.name)
     context.container.start(environment = env)
+
+@given(u'image is built')
+def image(context):
+    pass
 
 @given(u'container is started as uid {uid}')
 @when(u'container is started as uid {uid}')
