@@ -5,6 +5,7 @@ import os
 import requests
 import logging
 import select
+import socket
 import fcntl
 from time import sleep
 from docker import Client
@@ -167,7 +168,6 @@ def run_command_unexpect_message(context, cmd, output_phrase):
         return True
     raise Exception("commmand output contains prohibited text")
 
-
 @then(u'run {cmd} in container and check its output for {output_phrase}')
 @then(u'run {cmd} in container and check its output contains {output_phrase}')
 @then(u'run {cmd} in container')
@@ -223,6 +223,25 @@ def start_container(context, uid):
         raise Exception("UID %d is negative" % uid)
     context.container = Container(context.image, save_output = False)
     context.container.start(user = uid)
+
+
+@then(u'check that port {port} is open')
+def check_port_open(context, port):
+    start_time = time.time()
+
+    ip = context.container.ip_address
+    logging.info("connecting to %s port %s" % (ip, port))
+    while time.time() < start_time + 30:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(1)
+            s.connect((ip, int(port)))
+            s.close()
+            return True
+        except Exception as ex:
+            logging.debug("not connected yes %s" %ex)
+        time.sleep(1)
+    raise Exception("Port %s is not open" %port)
 
 def _execute(command, **kwargs):
     """
