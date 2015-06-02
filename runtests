@@ -1,0 +1,52 @@
+#!/bin/sh
+set -u
+set -e
+
+# runtests: wrapper script to invoke ctf-cli.py
+# usage: ./ce-ctf-tests/runtests <image name> <path to feature file>
+#
+# this script presumes we want to test an already-built image using
+# features described in a single feature file. It hides the details
+# of preparing the test directories, files and environment from you.
+
+
+# Presume ctf-cli is checked out in $HOME. Override by defining
+# the 'cli' environment variable to point at ctf-cli.py
+cli=${cli-$HOME/ctf-cli/ctf-cli.py}
+
+die() {
+    echo $@>&2
+    exit 1
+}
+usage() {
+    echo "usage: $0 <docker-image-to-test> <feature-file-to-test>"
+}
+if [ $# -ne 2 ]; then
+    usage >&2
+    exit 1
+fi
+
+image="$1"
+testf="$2"
+
+# pre-flight checks
+sudo docker inspect "$image" >/dev/null # valid image?
+[ -f "$testf" ] || die "Not a feature file: $testf"
+[ -f "$cli" ] || die "$cli does not exist. You can override this path by defining the 'cli' environment variable."
+
+# set up testing environment
+[ -d tests ] || {
+  [ -d ce-ctf-tests ] || die "ce-ctf-tests is not a checkout of the ce-ctf-tests repo"
+  cp -a ce-ctf-tests/tests tests
+}
+[ -d tests/features ] || mkdir tests/features
+
+# set up tests
+for f in tests/features/*.feature; do
+    [ -f "$f" ] && echo "warning: feature file '$f' exists and will be included."
+done
+dest="tests/features/$(basename "$testf")"
+cp "$testf" "$dest"
+
+sudo "$cli" -v -i "$image" -c tools/ci/ctf.conf \
+    -f /dev/null # hack to get around specifying a Dockerfile, thanks Marek
