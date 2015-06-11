@@ -30,7 +30,7 @@ image="$1"
 testf="$2"
 
 # pre-flight checks
-sudo docker inspect "$image" >/dev/null # valid image?
+docker inspect "$image" >/dev/null # valid image?
 [ -f "$testf" ] || die "Not a feature file: $testf"
 [ -f "$cli" ] || die "$cli does not exist. You can override this path by defining the 'cli' environment variable."
 
@@ -48,5 +48,5 @@ done
 dest="tests/features/$(basename "$testf")"
 cp "$testf" "$dest"
 
-sudo "$cli" -v -i "$image" -c tools/ci/ctf.conf \
+"$cli" -v -i "$image" -c tools/ci/ctf.conf \
     -f /dev/null # hack to get around specifying a Dockerfile, thanks Marek
