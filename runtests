@@ -12,7 +12,7 @@ set -e
 
 # Presume ctf-cli is checked out in $HOME. Override by defining
 # the 'cli' environment variable to point at ctf-cli.py
-cli=${cli-$HOME/ctf-cli/ctf-cli.py}
+cli=${CLI-$HOME/ctf-cli/ctf-cli.py}
 
 die() {
     echo $@>&2
@@ -32,7 +32,7 @@ testf="$2"
 # pre-flight checks
 docker inspect "$image" >/dev/null # valid image?
 [ -f "$testf" ] || die "Not a feature file: $testf"
-[ -f "$cli" ] || die "$cli does not exist. You can override this path by defining the 'cli' environment variable."
+[ -f "$cli" ] || [ -f `which $cli` ] || die "$cli does not exist. You can override this path by defining the 'cli' environment variable."
 
 # find the root of the jboss-dockerfiles repository (needed for ../tools/ci/ctf.conf)
 # XXX: assumes that the test file is in that directory somewhere, which it might not be
@@ -62,6 +62,10 @@ mkdir -p "$workdir/tests/features"
 dest="$workdir/tests/features/$(basename "$testf")"
 cp "$testf" "$dest"
 
-cd "$workdir"
-"$cli" -v -i "$image" -c "$repo/tools/ci/ctf.conf" \
-    -f /dev/null # hack to get around specifying a Dockerfile, thanks Marek
+pushd "$workdir" >/dev/null
+if [ ! -d "$repo/unit" ] ; then
+    mkdir $repo/unit
+fi
+"$cli" -v -i "$image" -c "$repo/tools/ci/ctf.conf" -j$repo/unit \
+       -f /dev/null # hack to get around specifying a Dockerfile, thanks Marek
+popd >/dev/null
