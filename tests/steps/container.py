@@ -28,6 +28,11 @@ import os
 import re
 d = Client()
 
+class ExecException(Exception):
+    def __init__(self, message, output=None):
+        super(ExecException, self).__init__(message)
+        self.output = output
+
 class Container(object):
     """
     Object representing a docker test container, it is used in tests
@@ -89,7 +94,12 @@ class Container(object):
     def execute(self, cmd):
         """ executes cmd in container and return its output """
         inst = d.exec_create(container=self.container, cmd=cmd)
-        return d.exec_start(inst)
+
+        output = d.exec_start(inst)
+        retcode = d.exec_inspect(inst)['ExitCode']
+
+        if retcode is not 0:
+            raise ExecException("Command %s failed to execute, return code: %s" % (cmd, retcode), output)
 
     def get_output(self, history = True):
         return d.attach(container = self.container, stream = False, logs=history)
