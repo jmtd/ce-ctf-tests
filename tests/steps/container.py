@@ -25,6 +25,7 @@ from __future__ import print_function
 import logging
 from docker import Client
 import os
+import re
 d = Client()
 
 class Container(object):
@@ -72,7 +73,8 @@ class Container(object):
         if self.running and self.save_output:
             if not self.name:
                 self.name = self.container.get('Id')
-            out_path = self.output_dir + "/output-" + self.name + ".txt"
+            filename = "".join([c for c in self.name if re.match(r'\w', c)])
+            out_path = self.output_dir + "/output-" + filename + ".txt"
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
             with open(out_path, 'w') as f:

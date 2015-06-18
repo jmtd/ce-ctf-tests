@@ -243,7 +243,26 @@ def check_port_open(context, port):
         time.sleep(1)
     raise Exception("Port %s is not open" %port)
 
-def _execute(command, **kwargs):
+@then(u'file {file_name} should exist')
+@then(u'file {file_name} should exist and be a {file_type}')
+#TODO: @then(u'file {file_name} should exist and have {permission} permissions')
+def check_file_exists(context, file_name, file_type = None):
+    if not _execute("test -e %s" % file_name, log_output = False):
+        raise Exception("File %s does not exist" % file_name)
+
+    if file_type:
+        if file_type == "directory":
+            if _execute("test -d %s" % file_name, log_output = False):
+                return True
+            else:
+                raise Exception("File %s is not a directory" % file_name)
+        elif file_type == "symlink":
+            if _execute("test -L %s" % file_name, log_output = False):
+                return True
+            else:
+                raise Exception("File %s is not a symlink" % file_name)
+
+def _execute(command, log_output = True):
     """
     Helper method to execute a shell command and redirect the logs to logger
     with proper log level.
@@ -252,7 +271,7 @@ def _execute(command, **kwargs):
     logging.debug("Executing '%s' command..." % command)
 
     try:
-        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
         levels = {
@@ -272,11 +291,12 @@ def _execute(command, **kwargs):
             fcntl.fcntl(proc.stdout.fileno(), fcntl.F_GETFL) | os.O_NONBLOCK,
         )
 
-        while proc.poll() == None:
-            readx = select.select([proc.stdout, proc.stderr], [], [])[0]
-            for output in readx:
-                line = output.readline()[:-1]
-                logging.log(levels[output], line)
+        if log_output:
+            while proc.poll() == None:
+                readx = select.select([proc.stdout, proc.stderr], [], [])[0]
+                for output in readx:
+                    line = output.readline()[:-1]
+                    logging.log(levels[output], line)
 
         proc.wait()
 
