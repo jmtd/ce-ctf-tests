@@ -101,6 +101,8 @@ class Container(object):
         if retcode is not 0:
             raise ExecException("Command %s failed to execute, return code: %s" % (cmd, retcode), output)
 
+        return output
+
     def get_output(self, history = True):
         return d.attach(container = self.container, stream = False, logs=history)
 
