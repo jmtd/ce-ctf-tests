@@ -9,7 +9,7 @@ import socket
 import fcntl
 from time import sleep
 from docker import Client
-from container import Container
+from container import Container, ExecException
 
 DOCKER_CLIENT = Client()
 LOG_FORMAT='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -247,20 +247,24 @@ def check_port_open(context, port):
 @then(u'file {file_name} should exist and be a {file_type}')
 #TODO: @then(u'file {file_name} should exist and have {permission} permissions')
 def check_file_exists(context, file_name, file_type = None):
-    if not _execute("test -e %s" % file_name, log_output = False):
+    try:
+        context.container.execute("test -e %s" % file_name)
+    except ExecException:
         raise Exception("File %s does not exist" % file_name)
 
     if file_type:
         if file_type == "directory":
-            if _execute("test -d %s" % file_name, log_output = False):
-                return True
-            else:
+            try:
+                context.container.execute("test -d %s" % file_name)
+            except ExecException:
                 raise Exception("File %s is not a directory" % file_name)
         elif file_type == "symlink":
-            if _execute("test -L %s" % file_name, log_output = False):
-                return True
-            else:
+            try:
+                context.container.execute("test -L %s" % file_name)
+            except ExecException:
                 raise Exception("File %s is not a symlink" % file_name)
+
+    return True
 
 def _execute(command, log_output = True):
     """
@@ -298,10 +302,14 @@ def _execute(command, log_output = True):
                     line = output.readline()[:-1]
                     logging.log(levels[output], line)
 
-        proc.wait()
+        retcode = proc.wait()
+
+        if retcode is not 0:
+            logging.error("Command '%s' returned code was %s, check logs" % (command, retcode))
+            return False
 
     except subprocess.CalledProcessError as e:
-        logger.error("Command '%s' failed, check logs" % command)
+        logging.error("Command '%s' failed, check logs" % command)
         return False
 
     return True
