@@ -43,7 +43,15 @@ def label_exists(context, label, value=None):
         return True
 
     raise Exception("The %s label does not contain %s value, current value: %s" % (label, value, actual_value))
-    
+
+@then(u'the image should contain label {label} containing value {value}')
+def label_contains(context, label, value=None):
+    label_exists(context, label)
+    actual_value = DOCKER_CLIENT.inspect_image(context.image)['Config']['Labels'][label]
+    if actual_value.find(value) >= 0:
+        return True
+    raise Exception("The %s label does not contain %s, current value: %s" % (label, value, actual_value))
+
 @then(u'check that page is not served')
 def check_page_is_not_served(context):
     # set defaults
