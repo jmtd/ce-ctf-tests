@@ -21,8 +21,8 @@ def container_is_started(context):
     context.container.start()
 
 @then(u'the image should contain label {label}')
-@then(u'the image should contain label {label} with value {value}')
-def label_exists(context, label, value=None):
+@then(u'the image should contain label {label} {check} value {value}')
+def label_exists(context, label, check="with", value=None):
     metadata = DOCKER_CLIENT.inspect_image(context.image)
     config = metadata['Config']
 
@@ -39,18 +39,12 @@ def label_exists(context, label, value=None):
     if not value:
         return True
 
-    if actual_value == value:
-        return True
+    if check == "with" and actual_value == value:
+            return True
+    elif check == "containing" and actual_value.find(value) >= 0:
+            return True
 
     raise Exception("The %s label does not contain %s value, current value: %s" % (label, value, actual_value))
-
-@then(u'the image should contain label {label} containing value {value}')
-def label_contains(context, label, value=None):
-    label_exists(context, label)
-    actual_value = DOCKER_CLIENT.inspect_image(context.image)['Config']['Labels'][label]
-    if actual_value.find(value) >= 0:
-        return True
-    raise Exception("The %s label does not contain %s, current value: %s" % (label, value, actual_value))
 
 @then(u'check that page is not served')
 def check_page_is_not_served(context):
