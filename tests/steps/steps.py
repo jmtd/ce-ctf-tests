@@ -176,14 +176,15 @@ def run_command_unexpect_message(context, cmd, output_phrase):
 def run_command_expect_message(context, cmd, output_phrase):
     start_time = time.time()
     while time.time() < start_time + 80:
-        output = context.container.execute(cmd=cmd)
-        # in an ideal world we'd check the return code of the command, but
-        # docker python client library doesn't provide us with that, so we
-        # instead look for a predictable string in the output
-        if output_phrase in output:
-            return True
-        time.sleep(1)
-    raise Exception("run_command_expect_message didn't find message", output)
+        last_output = None
+        try:
+            output = context.container.execute(cmd=cmd)
+            if output_phrase in output:
+                return True
+        except ExecException as e:
+            last_output = e.output
+            time.sleep(1)
+    raise Exception("run_command_expect_message didn't find message", last_output)
 
 
 @then('file {filename} should contain {phrase}')
