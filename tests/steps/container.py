@@ -78,7 +78,7 @@ class Container(object):
         if self.running and self.save_output:
             if not self.name:
                 self.name = self.container.get('Id')
-            filename = "".join([c for c in self.name if re.match(r'\w', c)])
+            filename = "".join([c for c in self.name if re.match(r'[\w\ ]', c)])
             out_path = self.output_dir + "/output-" + filename + ".txt"
             if not os.path.exists(self.output_dir):
                 os.makedirs(self.output_dir)
