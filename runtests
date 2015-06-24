@@ -19,9 +19,9 @@ die() {
     exit 1
 }
 usage() {
-    echo "usage: $0 <docker-image-to-test> <feature-file-to-test>"
+    echo "usage: $0 <docker-image-to-test> <feature-file-to-test> [ feature-files ... ]"
 }
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ]; then
     usage >&2
     exit 1
 fi
@@ -59,8 +59,14 @@ fi
 mkdir -p "$workdir/tests/features"
 
 # set up tests
-dest="$workdir/tests/features/$(basename "$testf")"
-cp "$testf" "$dest"
+shift
+while [ $# -gt 0 ]; do
+    testf="$1"
+    [ -f "$testf" ] || die "Not a feature file: $testf"
+    dest="$workdir/tests/features/$(basename "$testf")"
+    cp "$testf" "$dest"
+    shift
+done
 
 pushd "$workdir" >/dev/null
 if [ ! -d "$repo/unit" ] ; then
