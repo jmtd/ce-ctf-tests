@@ -162,6 +162,22 @@ def log_contains_msg(context, message):
         logging.error("Message '%s' was not found in the logs" % message)
     raise Exception("expect_message failed", message)
 
+@then(u'run {cmd} in container and immediately check its output for {output_phrase}')
+@then(u'run {cmd} in container and immediately check its output contains {output_phrase}')
+def run_command_immediately_expect_message(context, cmd, output_phrase):
+    output = context.container.execute(cmd=cmd)
+    if not output_phrase in output:
+        raise Exception("run_command_expect_message didn't find message", output)
+    return True
+
+@then(u'run {cmd} in container and immediately check its output does not contain {output_phrase}')
+def run_command_immediately_unexpect_message(context, cmd, output_phrase):
+    try:
+        run_command_immediately_expect_message(context, cmd, output_phrase)
+    except:
+        return True
+    raise Exception("commmand output contains prohibited text")
+
 @then(u'run {cmd} in container and check its output does not contain {output_phrase}')
 def run_command_unexpect_message(context, cmd, output_phrase):
     try:
